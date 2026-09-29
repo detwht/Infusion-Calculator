@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preroll Infusion Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: one working card — inputs left, oil result right; stacks on phones */
+:root{
+  --bg:#f3f2ee; --surface:#fffefb; --fg:#1f2320; --muted:#626a64; --line:#dcdad2;
+  --accent:#b86e12; --accent-soft:#f6e7cf; --field:#fbfaf6;
+  --display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151816; --surface:#1d211e; --fg:#ecebe6; --muted:#9aa29c; --line:#323833;
+  --accent:#e7a24a; --accent-soft:#3a2c17; --field:#171a18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151816; --surface:#1d211e; --fg:#ecebe6; --muted:#9aa29c; --line:#323833;
+  --accent:#e7a24a; --accent-soft:#3a2c17; --field:#171a18; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;padding:32px 16px 48px}
+.wrap{max-width:860px;margin:0 auto;display:grid;gap:20px}
+header h1{font-family:var(--display);font-weight:700;font-size:2rem;line-height:1.1;margin:0 0 6px;text-wrap:balance;letter-spacing:.01em}
+header p{margin:0;color:var(--muted);max-width:60ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+.inputs{padding:24px;display:grid;gap:18px;align-content:start}
+.field{display:grid;gap:6px}
+.field label{font-weight:600;font-size:.95rem}
+.field .hint{font-size:.82rem;color:var(--muted)}
+.box{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--field)}
+.box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.box input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font:600 1.2rem var(--mono);padding:10px 12px;outline:none;font-variant-numeric:tabular-nums}
+.box span{padding:0 12px;color:var(--muted);font:500 .9rem var(--mono)}
+.result{background:var(--accent-soft);padding:24px;display:grid;gap:18px;align-content:start;border-left:1px solid var(--line)}
+.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:var(--muted)}
+.big{font:600 clamp(2.2rem,7vw,3.2rem)/1 var(--mono);color:var(--accent);font-variant-numeric:tabular-nums;word-break:break-all}
+.big small{font-size:.45em;margin-left:4px;color:var(--fg)}
+.sub{font-size:.9rem;color:var(--muted);margin-top:6px}
+dl{margin:0;display:grid;gap:0}
+dl div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
+dt{color:var(--muted);font-size:.9rem}
+dd{margin:0;font:600 .95rem var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.err{color:#b3261e;font-size:.9rem}
+:root[data-theme="dark"] .err{color:#f2968f}
+.how{font-size:.9rem;color:var(--muted);max-width:70ch}
+.how b{color:var(--fg)}
+button{font:600 .85rem var(--body);background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer;justify-self:start}
+button:hover{border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:640px){.card{grid-template-columns:1fr}.result{border-left:0;border-top:1px solid var(--line)}header h1{font-size:1.6rem}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Preroll Infusion Calculator</h1>
+    <p>Enter how much biomass you're rolling and how much oil goes in each preroll. The oil to mix in updates as you type.</p>
+  </header>
+
+  <section class="card">
+    <form class="inputs" id="calc" onsubmit="return false">
+      <div class="field">
+        <label for="biomass">Total biomass for the batch</label>
+        <div class="box"><input id="biomass" type="number" inputmode="decimal" min="0" step="any" value="70000"><span>g</span></div>
+        <div class="hint">Everything going into this run. 1 lb = 453.6 g</div>
+      </div>
+      <div class="field">
+        <label for="perRoll">Biomass per preroll</label>
+        <div class="box"><input id="perRoll" type="number" inputmode="decimal" min="0" step="any" value="1"><span>g</span></div>
+      </div>
+      <div class="field">
+        <label for="oilPer">Oil per preroll</label>
+        <div class="box"><input id="oilPer" type="number" inputmode="decimal" min="0" step="any" value="0.3"><span>g</span></div>
+      </div>
+      <div class="field">
+        <label for="overage">Extra oil for loss</label>
+        <div class="box"><input id="overage" type="number" inputmode="decimal" min="0" step="any" value="3"><span>%</span></div>
+        <div class="hint">Covers oil left on equipment and containers. Standard is 3%.</div>
+      </div>
+      <button type="button" id="reset">Reset to example</button>
+    </form>
+
+    <div class="result" aria-live="polite">
+      <div>
+        <div class="eyebrow">Oil to mix in</div>
+        <div class="big" id="total">21,630<small>g</small></div>
+        <div class="sub" id="totalSub">Includes 3% extra for loss</div>
+      </div>
+      <p class="err" id="err" hidden></p>
+      <dl>
+        <div><dt>Oil before extra</dt><dd id="oil">21,000 g</dd></div>
+        <div><dt>Extra for loss</dt><dd id="extra">630 g</dd></div>
+        <div><dt>Prerolls in batch</dt><dd id="count">70,000</dd></div>
+        <div><dt>Oil to biomass ratio</dt><dd id="ratio">30%</dd></div>
+        <div><dt>Finished weight per preroll</dt><dd id="finished">1.3 g</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <p class="how"><b>How it's figured:</b> oil per preroll ÷ biomass per preroll gives the ratio. Total biomass × ratio gives the oil needed, then the extra percentage is added on top.</p>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const ids=["biomass","perRoll","oilPer","overage"];
+const defaults={biomass:70000,perRoll:1,oilPer:0.3,overage:3};
+const fmt=(n,d=2)=>n.toLocaleString("en-US",{maximumFractionDigits:d});
+function calc(){
+  const b=parseFloat($("biomass").value),p=parseFloat($("perRoll").value),o=parseFloat($("oilPer").value);
+  let ov=parseFloat($("overage").value); if(!isFinite(ov)||ov<0) ov=0;
+  const ok=[b,p,o].every(v=>isFinite(v)&&v>=0)&&p>0;
+  $("err").hidden=ok;
+  if(!ok){$("err").textContent="Enter a number in each box. Biomass per preroll must be more than 0.";
+    ["total","oil","extra","count","ratio","finished"].forEach(k=>$(k).textContent="—");$("total").innerHTML="—";return;}
+  const ratio=o/p, oil=b*ratio, extra=oil*ov/100, total=oil+extra;
+  $("total").innerHTML=fmt(total)+"<small>g</small>";
+  $("totalSub").textContent="Includes "+fmt(ov)+"% extra for loss";
+  $("oil").textContent=fmt(oil)+" g";
+  $("extra").textContent=fmt(extra)+" g";
+  $("count").textContent=fmt(Math.floor(b/p+1e-9),0);
+  $("ratio").textContent=fmt(ratio*100)+"%";
+  $("finished").textContent=fmt(p+o,3)+" g";
+}
+ids.forEach(i=>$(i).addEventListener("input",calc));
+$("reset").addEventListener("click",()=>{ids.forEach(i=>$(i).value=defaults[i]);calc();});
+calc();
+</script>
+</body>
+</html>
